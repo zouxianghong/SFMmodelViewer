@@ -39,13 +39,10 @@
 		<script>
 
 			var container;
-
 			var camera, scene, renderer,control;
-
 
 			init();
 			animate();
-
 
 			function init() {
 
@@ -53,7 +50,7 @@
 				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.z = 6;
+				camera.position.z = 350;
 				
 				control = new THREE.TrackballControls(camera);
 				control.rotateSpeed = 10;
@@ -67,6 +64,7 @@
 
 				var directionalLight = new THREE.DirectionalLight( 0xffffff );
 				directionalLight.position.set( 0, 0, 1 ).normalize();
+				directionalLight.intensity = 0.2;
 				scene.add( directionalLight );
 
 				// model
@@ -82,10 +80,10 @@
 				};
 
 				var loader = new THREE.OBJMTLLoader();
-				loader.load( 'mo.obj', 'mo.mtl', function ( object ) {
+				loader.load( 'female/female02.obj', 'female/female02.mtl', function ( object ) {
 
-					object.position.y = 0;
-					object.position.z = -6.5;
+					object.position.y = -80;
+					object.position.z = 0;
 					scene.add( object );
 					control.target.set(0,0,0);
 
@@ -99,6 +97,9 @@
 				container.appendChild( renderer.domElement );
 
 				window.addEventListener( 'resize', onWindowResize, false );
+
+				var axisHelper = new THREE.AxisHelper( 50 );
+				//scene.add( axisHelper );
 
 			}
 
