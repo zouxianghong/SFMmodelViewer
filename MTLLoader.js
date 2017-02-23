@@ -340,7 +340,8 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 
 					// Diffuse texture map
 
-					params[ 'map' ] = this.loadTexture( this.baseUrl + value );
+					//params[ 'map' ] = this.loadTexture( this.baseUrl + value );
+					params[ 'map' ] = new THREE.Texture();
 					params[ 'map' ].wrapS = this.wrap;
 					params[ 'map' ].wrapT = this.wrap;
 
@@ -377,7 +378,8 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 
 					if ( params[ 'bumpMap' ] ) break; // Avoid loading twice.
 
-					params[ 'bumpMap' ] = this.loadTexture( this.baseUrl + value );
+					//params[ 'bumpMap' ] = this.loadTexture( this.baseUrl + value );
+					params[ 'bumpMap' ] = new THREE.Texture();
 					params[ 'bumpMap' ].wrapS = this.wrap;
 					params[ 'bumpMap' ].wrapT = this.wrap;
 

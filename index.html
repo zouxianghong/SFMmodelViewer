@@ -18,16 +18,28 @@
 				top: 10px;
 				width: 100%;
 				text-align: center;
-				z-index: 100;
 				display:block;
 			}
-			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
 		</style>
 	</head>
 
-	<body>
+	<body bgcolor="#f0f8ff">
+
 		<div id="info">
-		<a href="http://threejs.org" target="_blank">three.js</a> - OBJMTLLoader test
+			<a href="http://threejs.org" target="_blank">three.js</a> - OBJMTLLoader test
+			<table width="485" border="1" cellspacing=0 cellpadding=5>
+				<tr>
+					<td align="left" height="105" ondragenter="return false" ondragover="return false" ondrop="dropIt(event)">
+						<output id="thumbs"></output>
+					</td>
+				</tr>
+				<tr>
+					<td align="center">
+						<p>Drag & drop or choose images from your local file system: <input type="file" id="input" size="10" multiple="true" onchange="filesSelected(this.files)" /></p>
+					</td>
+				</tr>
+			</table>
+			<canvas id="myCanvas"></canvas>
 		</div>
 
 		<script src="three.js"></script>
@@ -40,6 +52,7 @@
 
 			var container;
 			var camera, scene, renderer,control;
+			var obj_url = 'C:/Users/zxh/Desktop/SFMmodelViewer/female/female02.obj',mtl_url = 'C:/Users/zxh/Desktop/SFMmodelViewer/female/female02.mtl';
 
 			init();
 			animate();
@@ -47,13 +60,14 @@
 			function init() {
 
 				container = document.createElement( 'div' );
+				container.style.color = '#ffffff';
 				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 				camera.position.z = 350;
 				
 				control = new THREE.TrackballControls(camera);
-				control.rotateSpeed = 4;
+				control.rotateSpeed = 10;
 
 				// scene
 
@@ -67,29 +81,7 @@
 				directionalLight.intensity = 0.2;
 				scene.add( directionalLight );
 
-				// model
-
-				var onProgress = function ( xhr ) {
-					if ( xhr.lengthComputable ) {
-						var percentComplete = xhr.loaded / xhr.total * 100;
-						console.log( Math.round(percentComplete, 2) + '% downloaded' );
-					}
-				};
-
-				var onError = function ( xhr ) {
-				};
-
-				var loader = new THREE.OBJMTLLoader();
-				loader.load( 'female/female02.obj', 'female/female02.mtl', function ( object ) {
-
-					object.position.y = -80;
-					object.position.z = 0;
-					scene.add( object );
-					control.target.set(0,0,0);
-
-				}, onProgress, onError );
-
-				//
+				//addModel(obj_url,mtl_url);
 
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -99,7 +91,7 @@
 				window.addEventListener( 'resize', onWindowResize, false );
 
 				var axisHelper = new THREE.AxisHelper( 50 );
-				//scene.add( axisHelper );
+				scene.add( axisHelper );
 
 			}
 
@@ -123,7 +115,104 @@
 				control.update();
 
 				renderer.render( scene, camera );
+				var eee = document.getElementsByTagName('01_-_Default1noCulling.JPG');
 
+			}
+
+			// model
+			function addModel(objtext,mtltext,imgElements){
+				/*
+				var onProgress = function ( xhr ) {
+					if ( xhr.lengthComputable ) {
+						var percentComplete = xhr.loaded / xhr.total * 100;
+						console.log( Math.round(percentComplete, 2) + '% downloaded' );
+					}
+				};
+
+				var onError = function ( xhr ) {
+				};
+
+				var loader = new THREE.OBJMTLLoader();
+				loader.load( objurl, mtlurl, function ( object ) {
+
+					object.position.y = -80;
+					object.position.z = 0;
+					scene.add( object );
+					control.target.set(0,0,0);
+					var light = new THREE.PointLight( 0xffffff );
+					light.position.set(5,5,-5);
+					light.intensity = 0.6;
+					light.distance = 5;
+					scene.add( light );
+
+				}, onProgress, onError );*/
+				var objmtlLoader = new THREE.OBJMTLLoader();
+				var mtlLoader = new THREE.MTLLoader(objmtlLoader.manager);
+				var materialsCreator = mtlLoader.parse(mtltext);
+				//materialsCreator.preload();
+
+				var object = objmtlLoader.parse( objtext );
+
+				object.traverse( function ( object ) {
+
+					if ( object instanceof THREE.Mesh ) {
+
+						if ( object.material.name ) {
+							var name = materialsCreator.materialsInfo[object.material.name].map_kd;
+							var img = imgElements[name];
+							var material = materialsCreator.create( object.material.name );
+							material.map.image = img;
+							if ( material ) object.material = material;
+						}
+
+					}
+
+				} );
+
+				object.position.y = -80;
+				object.position.z = 0;
+				scene.add( object );
+				control.target.set(0,0,0);
+				var light = new THREE.PointLight( 0xffffff );
+				light.position.set(5,5,-5);
+				light.intensity = 0.6;
+				light.distance = 5;
+				scene.add( light );
+			}
+
+			function filesSelected(files){
+				var objtext,mtltext,imgElements={};
+				for (var i = 0, f; f = files[i]; i++) {
+					var imageReader = new FileReader();
+					imageReader.onload = (function(aFile) {
+						return function(e) {
+							var result = e.target.result;
+							if(aFile.name.indexOf('.obj') != -1)
+								objtext = result;
+							if(aFile.name.indexOf('.mtl') != -1)
+								mtltext = result;
+							if(aFile.type.indexOf('image') != -1)
+							{
+								var img = document.createElement('img');
+								img.src = result;
+								var myCanvas = document.getElementById('myCanvas');
+								imgElements[aFile.name] = img;
+							}
+							if(objtext && mtltext && imgElements)
+								addModel(objtext,mtltext,imgElements);
+						};
+					})(f);
+					if(f.type.indexOf('image') != -1)
+						imageReader.readAsDataURL(f);
+					else
+						imageReader.readAsText(f);
+				}
+			}
+
+			function dropIt(e){
+				filesSelected(e.dataTransfer.files);
+				e.stopPropagation();
+				e.preventDefault();
 			}
 
 		</script>
